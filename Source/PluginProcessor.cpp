@@ -166,11 +166,19 @@ void PurePerspectiveAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     }
     
     if (_mono && totalNumInputChannels == 2) {
-        // add the right (1) to the left (0)
-        buffer.addFrom(0, 0, buffer, 1, 0, buffer.getNumSamples());
+        auto* leftIn = buffer.getReadPointer(0);
+        auto* rightIn = buffer.getReadPointer(1);
         
-        // copy the combined left (0) to the right (1)
-        buffer.copyFrom(1, 0, buffer, 0, 0, buffer.getNumSamples());
+        auto* leftOut = buffer.getWritePointer(0);
+        auto* rightOut = buffer.getWritePointer(1);
+        
+        for (auto sample = 0; sample < buffer.getNumSamples(); sample++) {
+            float left = leftIn[sample];
+            float right = rightIn[sample];
+            
+            leftOut[sample] = (right + left) / 2;
+            rightOut[sample] = (right + left) / 2;
+        }
     }
     
     if (_swap && totalNumInputChannels == 2) {
